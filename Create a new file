@@ -1,0 +1,184 @@
+-- =====================================================
+-- BEAUTY PRODUCTS SALES ANALYSIS
+-- Author  : Keerthiga E
+-- Tools   : MySQL
+-- Project : Beauty Products Sales Analysis Dashboard
+-- =====================================================
+
+-- ─────────────────────────────────────────────
+-- STEP 1: CREATE DATABASE & TABLE
+-- ─────────────────────────────────────────────
+
+CREATE DATABASE IF NOT EXISTS beauty_sales_db;
+USE beauty_sales_db;
+
+CREATE TABLE IF NOT EXISTS beauty_products (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    product_name  VARCHAR(100),
+    year          INT,
+    buyers        INT,
+    items_sold    INT,
+    returns       INT,
+    unit_price    DECIMAL(10,2),
+    total_sales   DECIMAL(10,2),
+    net_revenue   DECIMAL(10,2),
+    loss          DECIMAL(10,2),
+    net_profit    DECIMAL(10,2),
+    sale_date     DATE
+);
+
+-- ─────────────────────────────────────────────
+-- STEP 2: INSERT DATA
+-- ─────────────────────────────────────────────
+
+INSERT INTO beauty_products
+(product_name, year, buyers, items_sold, returns, unit_price, total_sales, net_revenue, loss, net_profit, sale_date)
+VALUES
+-- 2025 Data
+('Lipstick',              2025, 1, 1, 0, 100.00,  100.00,  100.00,   0.00,    100.00,  '2025-05-05'),
+('Cetaphil Moisturizer',  2025, 3, 5, 1, 760.00,  1520.00, 0.00,     760.00,  -760.00, '2025-05-05'),
+('Lip Balm',              2025, 2, 2, 0, 100.00,  200.00,  100.00,   0.00,    100.00,  '2025-05-06'),
+('Sunscreen',             2025, 2, 2, 0, 600.00,  1200.00, 600.00,   0.00,    600.00,  '2025-05-06'),
+('Lip Liner',             2025, 2, 2, 0, 250.00,  500.00,  250.00,   0.00,    250.00,  '2025-05-06'),
+('Sebamed Body Wash',     2025, 4, 2, 0, 540.00,  1080.00, 540.00,   0.00,    540.00,  '2025-05-07'),
+('Sebamed Lotion',        2025, 4, 3, 1, 540.00,  1620.00, 0.00,     540.00,  -540.00, '2025-05-07'),
+('Cetaphil Lotion',       2025, 5, 2, 0, 560.00,  1120.00, 560.00,   0.00,    560.00,  '2025-05-04'),
+('Shampoo',               2025, 6, 2, 1, 500.00,  3500.00, 0.00,     500.00,  -500.00, '2025-05-04'),
+
+-- 2026 Data
+('Lipstick',              2026, 2, 2, 0, 150.00,  300.00,  150.00,   0.00,    150.00,  '2026-05-05'),
+('Cetaphil Moisturizer',  2026, 3, 10,1, 760.00,  7600.00, 1520.00,  0.00,    1520.00, '2026-05-05'),
+('Lip Balm',              2026, 2, 2, 1, 100.00,  200.00,  100.00,   0.00,    100.00,  '2026-05-06'),
+('Sunscreen',             2026, 3, 2, 0, 600.00,  1200.00, 600.00,   0.00,    600.00,  '2026-05-06'),
+('Lip Liner',             2026, 2, 2, 0, 350.00,  700.00,  350.00,   0.00,    350.00,  '2026-05-06'),
+('Sebamed Body Wash',     2026, 4, 2, 0, 540.00,  1080.00, 560.00,   0.00,    560.00,  '2026-05-07'),
+('Sebamed Lotion',        2026, 4, 3, 1, 540.00,  1620.00, 0.00,     540.00,  -540.00, '2026-05-07'),
+('Cetaphil Lotion',       2026, 5, 2, 0, 560.00,  1120.00, 560.00,   0.00,    560.00,  '2026-05-04'),
+('Shampoo',               2026, 6, 2, 1, 500.00,  3500.00, 0.00,     500.00,  -500.00, '2026-05-04');
+
+
+-- ─────────────────────────────────────────────
+-- STEP 3: DATA EXTRACTION QUERIES
+-- ─────────────────────────────────────────────
+
+-- Q1: View all data
+SELECT * FROM beauty_products
+ORDER BY year, product_name;
+
+-- Q2: View only 2025 data
+SELECT * FROM beauty_products
+WHERE year = 2025;
+
+-- Q3: View only 2026 data
+SELECT * FROM beauty_products
+WHERE year = 2026;
+
+
+-- ─────────────────────────────────────────────
+-- STEP 4: AGGREGATION QUERIES
+-- ─────────────────────────────────────────────
+
+-- Q4: Total Sales, Revenue, Profit, Loss by Year
+SELECT
+    year,
+    SUM(buyers)      AS total_buyers,
+    SUM(items_sold)  AS total_items_sold,
+    SUM(returns)     AS total_returns,
+    SUM(total_sales) AS total_sales,
+    SUM(net_revenue) AS total_net_revenue,
+    SUM(loss)        AS total_loss,
+    SUM(net_profit)  AS total_net_profit
+FROM beauty_products
+GROUP BY year
+ORDER BY year;
+
+-- Q5: Total Sales per Product (Both Years)
+SELECT
+    product_name,
+    SUM(total_sales)  AS total_sales,
+    SUM(net_revenue)  AS total_revenue,
+    SUM(net_profit)   AS total_profit,
+    SUM(loss)         AS total_loss
+FROM beauty_products
+GROUP BY product_name
+ORDER BY total_sales DESC;
+
+-- Q6: Average Unit Price per Product
+SELECT
+    product_name,
+    AVG(unit_price) AS avg_unit_price
+FROM beauty_products
+GROUP BY product_name
+ORDER BY avg_unit_price DESC;
+
+
+-- ─────────────────────────────────────────────
+-- STEP 5: ANALYSIS QUERIES
+-- ─────────────────────────────────────────────
+
+-- Q7: Year-over-Year Growth Analysis
+SELECT
+    a.product_name,
+    a.total_sales  AS sales_2025,
+    b.total_sales  AS sales_2026,
+    (b.total_sales - a.total_sales)                              AS sales_growth,
+    ROUND((b.total_sales - a.total_sales) / a.total_sales * 100, 2) AS growth_pct
+FROM
+    (SELECT product_name, SUM(total_sales) AS total_sales FROM beauty_products WHERE year = 2025 GROUP BY product_name) a
+JOIN
+    (SELECT product_name, SUM(total_sales) AS total_sales FROM beauty_products WHERE year = 2026 GROUP BY product_name) b
+ON a.product_name = b.product_name
+ORDER BY growth_pct DESC;
+
+-- Q8: Top 3 Best Performing Products by Profit (2026)
+SELECT
+    product_name,
+    net_profit,
+    total_sales,
+    net_revenue
+FROM beauty_products
+WHERE year = 2026
+ORDER BY net_profit DESC
+LIMIT 3;
+
+-- Q9: Products with Losses (any year)
+SELECT
+    product_name,
+    year,
+    loss,
+    returns,
+    net_profit
+FROM beauty_products
+WHERE loss > 0
+ORDER BY loss DESC;
+
+-- Q10: Products with High Return Rate
+SELECT
+    product_name,
+    year,
+    items_sold,
+    returns,
+    ROUND(returns / items_sold * 100, 2) AS return_rate_pct
+FROM beauty_products
+WHERE returns > 0
+ORDER BY return_rate_pct DESC;
+
+-- Q11: Overall KPI Summary (Both Years Combined)
+SELECT
+    SUM(total_sales)                          AS grand_total_sales,
+    SUM(net_revenue)                          AS grand_total_revenue,
+    SUM(net_profit)                           AS grand_total_profit,
+    SUM(loss)                                 AS grand_total_loss,
+    ROUND(AVG(unit_price), 2)                 AS avg_unit_price,
+    SUM(items_sold)                           AS total_items_sold,
+    SUM(returns)                              AS total_returns,
+    ROUND(SUM(returns)/SUM(items_sold)*100,2) AS overall_return_rate_pct
+FROM beauty_products;
+
+-- Q12: Most Buyers by Product
+SELECT
+    product_name,
+    SUM(buyers) AS total_buyers
+FROM beauty_products
+GROUP BY product_name
+ORDER BY total_buyers DESC;
